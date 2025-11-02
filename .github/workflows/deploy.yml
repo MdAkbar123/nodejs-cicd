@@ -12,14 +12,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.10
+      - name: Add SSH key to agent
+        uses: webfactory/ssh-agent@v0.8.1
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy via SSH (native ssh)
+        run: |
+          set -e
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} '
             set -e
             cd /home/ubuntu/node-service || git clone git@github.com:${{ github.repository }} node-service
             cd node-service
@@ -28,3 +29,4 @@ jobs:
             npm ci --omit=dev
             sudo pkill node || true
             nohup npm start > app.log 2>&1 &
+          '
