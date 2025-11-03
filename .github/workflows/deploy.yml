@@ -23,11 +23,26 @@ jobs:
           set -e
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} '
             set -e
-            cd /home/ubuntu/node-service || git clone git@github.com:${{ github.repository }} node-service
+            cd /home/ubuntu
+
+            if [ ! -d "node-service" ]; then
+              echo "📦 Cloning repository for the first time..."
+              git clone git@github.com:${{ github.repository }} node-service
+            fi
+
             cd node-service
+            echo "🔄 Updating repository..."
             git fetch --all
             git reset --hard origin/main
+
+            echo "📦 Installing dependencies..."
             npm ci --omit=dev
+
+            echo "🚀 Restarting Node.js service..."
             sudo pkill node || true
             nohup npm start > app.log 2>&1 &
+
+            echo "✅ Deployment completed successfully!"
           '
+
+                '
