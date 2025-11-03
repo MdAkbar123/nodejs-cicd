@@ -17,9 +17,9 @@ jobs:
           set -e
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/key1
-          chmod 600 ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/key1
           eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_rsa
+          ssh-add ~/.ssh/key1
           # optional: add host to known_hosts to avoid prompt
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
 
