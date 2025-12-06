@@ -1,4 +1,6 @@
 ---
-repo_url: "https://github.com/MdAkbar123/remote-repo.git"
+app_repo_url: "https://github.com/MdAkbar123/nodejs-cicd.git"
 app_dir: "/home/ubuntu/node-service"
-start_command: "npm start"
+app_start_command: "npm start"
+app_service_name: "node-app"
+app_node_port: 3000

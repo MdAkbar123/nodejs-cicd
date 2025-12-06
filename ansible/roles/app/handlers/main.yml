@@ -1,0 +1,8 @@
+# ansible/roles/app/handlers/main.yml
+
+- name: Restart Node app
+  ansible.builtin.systemd:
+    name: "{{ app_service_name }}"
+    state: restarted
+    daemon_reload: true
+  become: trues

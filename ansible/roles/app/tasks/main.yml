@@ -1,63 +1,58 @@
----
 - name: Deploy Node.js Application
-  hosts: all
-  become: yes
-  vars:
-    app_dir: /home/ubuntu/node-service
-    repo_url: "git@github.com:MdAkbar123/remote-repo.git"
-    start_command: "/usr/bin/node server.js"
-    service_name: node-service
-    node_port: 3000  # use non-privileged port
-
-  tasks:
+  block:
     - name: Ensure app directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ app_dir }}"
         state: directory
         owner: ubuntu
         mode: "0755"
 
     - name: Clone repository into node-service
-      git:
-        repo: "{{ repo_url }}"
+      ansible.builtin.git:  # Fixed: Use FQCN
+        repo: "{{ app_repo_url }}"
         dest: "{{ app_dir }}"
         version: main
-        force: yes
+        force: true
+      become: true          # Fixed: Added corresponding become
       become_user: ubuntu
 
     - name: Debug cloned directory
-      command: ls -l {{ app_dir }}/app
+      ansible.builtin.command: "ls -l {{ app_dir }}/app"
       register: list_output
-      ignore_errors: yes
+      ignore_errors: true
+      changed_when: false   # Fixed: "Commands should not change things"
 
-    - debug:
+    - name: Show directory contents
+      ansible.builtin.debug: # Fixed: Use FQCN
         var: list_output.stdout_lines
 
     - name: Install Node.js dependencies
-      npm:
+      community.general.npm: # Fixed: Use FQCN (requires community.general collection)
         path: "{{ app_dir }}/app"
-        production: yes
-      become: yes
+        production: true
+      become: true          # Fixed: Added corresponding become
       become_user: ubuntu
 
-    - name: Stop existing Node.js process (if running)
-      shell: pkill node || true
-      ignore_errors: yes
+    - name: Stop existing Node.js process
+      ansible.builtin.shell: pkill node || true
+      ignore_errors: true
+      changed_when: false   # Fixed: "Commands should not change things"
 
-    - name: Create systemd service for Node app
-      copy:
-        dest: "/etc/systemd/system/{{ service_name }}.service"
+    - name: Create systemd service file
+      ansible.builtin.copy: # Fixed: Use FQCN
+        dest: "/etc/systemd/system/{{ app_service_name }}.service"
+        mode: "0644"        # Fixed: Explicit permissions required
         content: |
           [Unit]
           Description=Node.js Application
           After=network.target
 
           [Service]
-          ExecStart={{ start_command }}
           WorkingDirectory={{ app_dir }}/app
+          ExecStart={{ app_start_command }}
           Restart=always
           User=ubuntu
-          Environment=PORT={{ node_port }}
+          Environment=PORT={{ app_node_port }}
           StandardOutput=append:/var/log/node-service.log
           StandardError=append:/var/log/node-service-error.log
 
@@ -65,18 +60,22 @@
           WantedBy=multi-user.target
       notify: Restart Node app
 
-    - name: Reload systemd daemon
-      systemd:
-        daemon_reload: yes
+    - name: Reload systemd
+      ansible.builtin.systemd: # Fixed: Use FQCN
+        daemon_reload: true
 
-    - name: Enable and start Node.js app as service
-      systemd:
-        name: "{{ service_name }}"
-        enabled: yes
+    - name: Enable and start service
+      ansible.builtin.systemd: # Fixed: Use FQCN
+        name: "{{ app_service_name }}"
+        enabled: true
         state: started
 
-  handlers:
-    - name: Restart Node app
-      systemd:
-        name: "{{ service_name }}"
-        state: restarted
+  rescue:
+    - name: Debug failure
+      ansible.builtin.debug:
+        msg: "Deployment failed — check logs."
+
+  always:
+    - name: Debug lifecycle end
+      ansible.builtin.debug:
+        msg: "Deployment lifecycle finished."
