@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy resources in"
   type        = string
-  default     = "eu-north-1"
+  default     = "ap-south-1" # Change to your preferred region
 }
 
 #variable "aws_access_key" {
@@ -17,7 +17,7 @@ variable "aws_region" {
 variable "instance_type" {
   description = "Type of EC2 instance"
   type        = string
-  default     = "t3.micro"
+  default     = "t2.micro"
 }
 
 variable "public_key_path" {
@@ -29,5 +29,5 @@ variable "public_key_path" {
 variable "ami_id" {
   description = "AMI ID for Ubuntu 22.04 in your region"
   type        = string
-  default     = "ami-0fa91bc90632c73c9" # Ubuntu 22.04 LTS (Jammy) for most regions
+  default     = "ami-02b8269d5e85954ef" # Ubuntu 22.04 LTS (Jammy) for most regions
 }
